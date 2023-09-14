@@ -4,5 +4,6 @@ public enum Evaluation {
 
     GOOD,
     BAD,
+    NONE,
     ;
 }
