@@ -13,4 +13,10 @@ public interface RestaurantCustomRepository {
             RestaurantCategory category,
             Pageable pageable
     );
+
+    List<RestaurantResponse.NearRestaurantDtoWithoutParsing> findRestaurantByBuildingIdAndRestaurantCategoryWithoutParsing(
+            Long buildingId,
+            RestaurantCategory category,
+            Pageable pageable
+    );
 }

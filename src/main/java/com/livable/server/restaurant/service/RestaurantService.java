@@ -12,13 +12,16 @@ import com.livable.server.restaurant.repository.RestaurantGroupByMenuProjectionR
 import com.livable.server.restaurant.repository.RestaurantRepository;
 import com.livable.server.visitation.domain.VisitationErrorCode;
 import com.livable.server.visitation.repository.VisitorRepository;
+
 import java.util.ArrayList;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
 @Service
@@ -44,9 +47,18 @@ public class RestaurantService {
                         category
                 );
 
-        return restaurantRepository.findRestaurantByBuildingIdAndRestaurantCategory(
-                buildingId, category, randomGenerator.getRandom(nearRestaurantCount)
-        );
+        List<RestaurantResponse.NearRestaurantDtoWithoutParsing> withoutParsing =
+                restaurantRepository.findRestaurantByBuildingIdAndRestaurantCategoryWithoutParsing(
+                        buildingId, category, randomGenerator.getRandom(nearRestaurantCount)
+                );
+
+        return withoutParsing.stream()
+                .map(RestaurantResponse.NearRestaurantDto::from)
+                .collect(Collectors.toList());
+
+//        return restaurantRepository.findRestaurantByBuildingIdAndRestaurantCategory(
+//                buildingId, category, randomGenerator.getRandom(nearRestaurantCount)
+//        );
     }
 
     public List<RestaurantsByMenuDto> findRestaurantByMenuId(Long menuId, Long memberId) {
@@ -60,7 +72,7 @@ public class RestaurantService {
     }
 
     private List<RestaurantsByMenuDto> getRestaurantsByMenu(
-        List<RestaurantByMenuProjection> restaurantByMenuProjections) {
+            List<RestaurantByMenuProjection> restaurantByMenuProjections) {
 
         List<RestaurantsByMenuDto> restaurantsByMenuDtos = new ArrayList<>();
 

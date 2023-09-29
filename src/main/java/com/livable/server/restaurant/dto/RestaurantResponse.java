@@ -1,6 +1,8 @@
 package com.livable.server.restaurant.dto;
 
 import com.livable.server.entity.RestaurantCategory;
+
+import java.util.StringTokenizer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import lombok.AccessLevel;
@@ -15,6 +17,7 @@ public class RestaurantResponse {
     @Getter
     @NoArgsConstructor
     @AllArgsConstructor
+    @Builder
     public static class NearRestaurantDto {
 
         private RestaurantCategory restaurantCategory;
@@ -25,6 +28,49 @@ public class RestaurantResponse {
 
         private Integer takenTime;
         private Integer floor;
+
+        private String url;
+
+        public static NearRestaurantDto from(NearRestaurantDtoWithoutParsing projection) {
+            return NearRestaurantDto.builder()
+                    .restaurantName(projection.getRestaurantName())
+                    .restaurantImageUrl(projection.getUrl())
+                    .floor(getFloorFromAddress(projection.getAddress()))
+                    .inBuilding(projection.getInBuilding())
+                    .takenTime(calcEstimatedTime(projection.getDistance()))
+                    .url(projection.getUrl())
+                    .build();
+        }
+
+        private static Integer calcEstimatedTime(Integer distance) {
+            int averageWalkSpeedPerMin = 80;
+            return distance / averageWalkSpeedPerMin;
+        }
+
+        private static Integer getFloorFromAddress(String address) {
+            int lastBlankIdx = address.lastIndexOf(" ");
+            String floorAddress = address.substring(lastBlankIdx + 1).replace("층", "");
+            if (floorAddress.contains("지하")) {
+                floorAddress = floorAddress.replace("지하", "-");
+            }
+
+            return Integer.parseInt(floorAddress);
+        }
+    }
+
+    @Getter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class NearRestaurantDtoWithoutParsing {
+
+        private RestaurantCategory restaurantCategory;
+        private String restaurantName;
+        private String restaurantImageUrl;
+
+        private Boolean inBuilding;
+
+        private Integer distance;
+        private String address;
 
         private String url;
     }

@@ -73,4 +73,33 @@ public class RestaurantCustomRepositoryImpl implements RestaurantCustomRepositor
 
         return query.fetchJoin().fetch();
     }
+
+    @Override
+    public List<RestaurantResponse.NearRestaurantDtoWithoutParsing>
+    findRestaurantByBuildingIdAndRestaurantCategoryWithoutParsing(
+            Long buildingId, RestaurantCategory category, Pageable pageable
+    ) {
+        final QRestaurant restaurant = QRestaurant.restaurant;
+        final QBuildingRestaurantMap buildingRestaurantMap = QBuildingRestaurantMap.buildingRestaurantMap;
+        final QBuilding building = QBuilding.building;
+
+        JPAQuery<RestaurantResponse.NearRestaurantDtoWithoutParsing> query = queryFactory
+                .selectDistinct(Projections.constructor(RestaurantResponse.NearRestaurantDtoWithoutParsing.class,
+                        restaurant.restaurantCategory,
+                        restaurant.name,
+                        restaurant.thumbnailImageUrl,
+                        buildingRestaurantMap.inBuilding,
+                        buildingRestaurantMap.distance,
+                        restaurant.address,
+                        restaurant.restaurantUrl
+                ))
+                .from(building)
+                .innerJoin(buildingRestaurantMap).on(buildingRestaurantMap.building.id.eq(building.id))
+                .innerJoin(restaurant).on(buildingRestaurantMap.restaurant.id.eq(restaurant.id))
+                .where(building.id.eq(buildingId).and(restaurant.restaurantCategory.eq(category)))
+                .offset(pageable.getPageNumber())
+                .limit(pageable.getPageSize());
+
+        return query.fetchJoin().fetch();
+    }
 }
